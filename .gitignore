@@ -1,2 +1,4 @@
 Test-technique.md
 __pycache__/
+./web/node_modules
+./web/package-lock.json
