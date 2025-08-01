@@ -1,0 +1,7 @@
+Flask==3.1.1
+pymysql
+cryptography
+flask-cors
+flask-mysql
+flask-jwt-extended
+bcrypt

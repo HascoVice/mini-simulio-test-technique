@@ -2,14 +2,17 @@ services:
     flask_backend:
       container_name: flask
       build: 
-        context: .
+        context: ./backend
         dockerfile: Dockerfile
       ports:
         - "5000:5000"
       
       volumes:
-        - .:/app
+        - ./backend:/app
       restart: always
+      
+      depends_on:
+      - mysql 
       
     mysql:
       container_name: mysql
@@ -25,10 +28,10 @@ services:
 
     react_frontend:
       build: 
-        context: ./web
+        context: ./frontend
         dockerfile: Dockerfile
       ports:
         - "5173:5173"
       volumes:
-        - ./web/src:/app/src
+        - ./frontend/src:/app/src
       restart: always
