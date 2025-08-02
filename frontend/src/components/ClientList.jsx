@@ -1,26 +1,28 @@
 import { useState, useEffect } from 'react';
+import { authService } from '../services/authService';
 
-const ClientList = ({ token, refreshTrigger }) => {
+const ClientList = ({ token, refreshTrigger, onTokenExpired }) => {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const fetchClients = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/clients/', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await authService.apiCall('http://localhost:5000/api/clients/');
 
       if (response.ok) {
         const data = await response.json();
         setClients(data);
+        setError('');
       } else {
         setError('Erreur lors du chargement des clients');
       }
     } catch (err) {
-      setError('Erreur de connexion au serveur');
+      if (err.message === 'TOKEN_EXPIRED') {
+        onTokenExpired();
+      } else {
+        setError('Erreur de connexion au serveur');
+      }
     } finally {
       setLoading(false);
     }

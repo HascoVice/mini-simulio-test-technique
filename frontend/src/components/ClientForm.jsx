@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { authService } from '../services/authService';
 
-const ClientForm = ({ token, onClientCreated }) => {
+const ClientForm = ({ token, onClientCreated, onTokenExpired }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -24,12 +25,8 @@ const ClientForm = ({ token, onClientCreated }) => {
     setSuccess('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/clients/', {
+      const response = await authService.apiCall('http://localhost:5000/api/clients/', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
         body: JSON.stringify(formData),
       });
 
@@ -37,13 +34,17 @@ const ClientForm = ({ token, onClientCreated }) => {
 
       if (response.ok) {
         setSuccess('Client créé avec succès !');
-        setFormData({ name: '', email: '', phone: '' }); 
-        if (onClientCreated) onClientCreated(); 
+        setFormData({ name: '', email: '', phone: '' });
+        if (onClientCreated) onClientCreated();
       } else {
         setError(data.msg || 'Erreur lors de la création du client');
       }
     } catch (err) {
-      setError('Erreur de connexion au serveur');
+      if (err.message === 'TOKEN_EXPIRED') {
+        onTokenExpired();
+      } else {
+        setError('Erreur de connexion au serveur');
+      }
     } finally {
       setLoading(false);
     }

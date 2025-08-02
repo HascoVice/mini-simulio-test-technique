@@ -2,16 +2,17 @@ import { useState, useEffect } from 'react';
 import Login from './components/Login';
 import ClientForm from './components/ClientForm';
 import ClientList from './components/ClientList';
+import { authService } from './services/authService';
 import './App.css';
 
 function App() {
   const [token, setToken] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    // Vérifier si un token existe déjà
-    const savedToken = localStorage.getItem('token');
+    const savedToken = authService.getToken();
     if (savedToken) {
       setToken(savedToken);
       setIsAuthenticated(true);
@@ -19,23 +20,39 @@ function App() {
   }, []);
 
   const handleLogin = (newToken) => {
+    authService.setToken(newToken);
     setToken(newToken);
     setIsAuthenticated(true);
+    setError('');
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    authService.logout();
     setToken(null);
     setIsAuthenticated(false);
+    setError('');
+  };
+
+  const handleTokenExpired = () => {
+    setError('Votre session a expiré. Veuillez vous reconnecter.');
+    handleLogout();
   };
 
   const handleClientCreated = () => {
-    // Déclenche le rafraîchissement de la liste des clients
     setRefreshTrigger(prev => prev + 1);
   };
 
   if (!isAuthenticated) {
-    return <Login onLogin={handleLogin} />;
+    return (
+      <div>
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+          </div>
+        )}
+        <Login onLogin={handleLogin} />
+      </div>
+    );
   }
 
   return (
@@ -66,6 +83,7 @@ function App() {
               <ClientForm 
                 token={token} 
                 onClientCreated={handleClientCreated}
+                onTokenExpired={handleTokenExpired}
               />
             </div>
             
@@ -74,6 +92,7 @@ function App() {
               <ClientList 
                 token={token} 
                 refreshTrigger={refreshTrigger}
+                onTokenExpired={handleTokenExpired}
               />
             </div>
           </div>
