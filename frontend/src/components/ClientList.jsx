@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
+import { Users, RefreshCw, Mail, Phone, Calculator } from 'lucide-react';
 import { authService } from '../services/authService';
 
-const ClientList = ({ token, refreshTrigger, onTokenExpired }) => {
+const ClientList = ({ token, refreshTrigger, onTokenExpired, onSimulateClient }) => {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -32,14 +33,32 @@ const ClientList = ({ token, refreshTrigger, onTokenExpired }) => {
     fetchClients();
   }, [token, refreshTrigger]);
 
+  const handleSimulateClick = (client) => {
+    if (onSimulateClient) {
+      onSimulateClient(client);
+    }
+  };
+
   if (loading) {
     return (
-      <div className="bg-white shadow rounded-lg p-6">
+      <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="space-y-2">
-            <div className="h-4 bg-gray-200 rounded"></div>
-            <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+          <div className="flex items-center space-x-3 mb-6">
+            <div className="w-8 h-8 bg-gray-200 rounded-lg"></div>
+            <div className="h-5 bg-gray-200 rounded w-1/3"></div>
+          </div>
+          <div className="space-y-4">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center space-x-4">
+                  <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                    <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -48,81 +67,94 @@ const ClientList = ({ token, refreshTrigger, onTokenExpired }) => {
 
   if (error) {
     return (
-      <div className="bg-white shadow rounded-lg p-6">
-        <div className="text-red-600 text-sm">{error}</div>
+      <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+        <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-lg">
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-medium text-gray-900">
-          Mes clients ({clients.length})
-        </h3>
+    <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center space-x-3">
+          <div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-lg">
+            <Users className="w-4 h-4 text-green-600" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900">
+            Mes clients ({clients.length})
+          </h3>
+        </div>
         <button
           onClick={fetchClients}
-          className="text-indigo-600 hover:text-indigo-500 text-sm font-medium"
+          className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
         >
-          Actualiser
+          <RefreshCw className="w-4 h-4" />
+          <span className="hidden sm:inline">Actualiser</span>
         </button>
       </div>
 
       {clients.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          <p>Aucun client créé pour le moment.</p>
-          <p className="text-sm">Créez votre premier client ci-dessus !</p>
+        <div className="text-center py-12">
+          <div className="flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4">
+            <Users className="w-8 h-8 text-gray-400" />
+          </div>
+          <h4 className="text-lg font-medium text-gray-900 mb-2">Aucun client</h4>
+          <p className="text-gray-500 mb-1">Vous n'avez pas encore créé de client.</p>
+          <p className="text-sm text-gray-400">Utilisez le formulaire ci-dessus pour commencer !</p>
         </div>
       ) : (
-        <div className="overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Client
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Contact
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {clients.map((client) => (
-                <tr key={client.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-8 w-8">
-                        <div className="h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center">
-                          <span className="text-sm font-medium text-white">
-                            {client.name.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">
-                          {client.name}
-                        </div>
-                      </div>
+        <div className="space-y-4">
+          {clients.map((client) => (
+            <div
+              key={client.id}
+              className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-md transition-all duration-200"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  {/* Avatar */}
+                  <div className="flex-shrink-0">
+                    <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
+                      <span className="text-sm font-semibold text-white">
+                        {client.name.charAt(0).toUpperCase()}
+                      </span>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{client.email}</div>
-                    {client.phone && (
-                      <div className="text-sm text-gray-500">{client.phone}</div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button className="text-indigo-600 hover:text-indigo-900">
-                      Simuler
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                  
+                  {/* Informations client */}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-semibold text-gray-900 truncate">
+                      {client.name}
+                    </h4>
+                    <div className="flex items-center space-x-4 mt-1">
+                      <div className="flex items-center space-x-1 text-xs text-gray-500">
+                        <Mail className="w-3 h-3" />
+                        <span className="truncate">{client.email}</span>
+                      </div>
+                      {client.phone && (
+                        <div className="flex items-center space-x-1 text-xs text-gray-500">
+                          <Phone className="w-3 h-3" />
+                          <span>{client.phone}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex-shrink-0">
+                  <button 
+                    onClick={() => handleSimulateClick(client)}
+                    className="flex items-center space-x-1 px-3 py-2 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                  >
+                    <Calculator className="w-3 h-3" />
+                    <span className="hidden sm:inline">Simuler</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

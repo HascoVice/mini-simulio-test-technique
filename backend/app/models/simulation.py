@@ -60,6 +60,96 @@ class Simulation:
         cursor.close()
         conn.close()
         return simulation_id
+    
+    @staticmethod
+    def get_by_client(client_id):
+        """Récupère toutes les simulations d'un client"""
+        conn = pymysql.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT s.id, s.amount, s.duration, s.interest_rate, s.monthly_payment, s.created_at,
+                   c.name as client_name, c.email as client_email
+            FROM simulations s
+            JOIN clients c ON s.client_id = c.id
+            WHERE s.client_id = %s
+            ORDER BY s.created_at DESC
+        """, (client_id,))
+        rows = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        
+        return [{
+            "id": row[0],
+            "amount": float(row[1]),
+            "duration": row[2],
+            "interest_rate": float(row[3]),
+            "monthly_payment": float(row[4]),
+            "created_at": str(row[5]),
+            "client_name": row[6],
+            "client_email": row[7]
+        } for row in rows]
+    
+    @staticmethod
+    def get_by_id(simulation_id):
+        """Récupère une simulation par son ID"""
+        conn = pymysql.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT s.id, s.client_id, s.user_id, s.amount, s.duration, 
+                   s.interest_rate, s.monthly_payment, s.created_at,
+                   c.name as client_name, c.email as client_email
+            FROM simulations s
+            JOIN clients c ON s.client_id = c.id
+            WHERE s.id = %s
+        """, (simulation_id,))
+        row = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        
+        if row:
+            return {
+                "id": row[0],
+                "client_id": row[1],
+                "user_id": row[2],
+                "amount": float(row[3]),
+                "duration": row[4],
+                "interest_rate": float(row[5]),
+                "monthly_payment": float(row[6]),
+                "created_at": str(row[7]),
+                "client_name": row[8],
+                "client_email": row[9]
+            }
+        return None
+    
+    @staticmethod
+    def get_by_user(user_id):
+        """Récupère toutes les simulations d'un utilisateur"""
+        conn = pymysql.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT s.id, s.client_id, s.amount, s.duration, s.interest_rate, 
+                   s.monthly_payment, s.created_at,
+                   c.name as client_name, c.email as client_email
+            FROM simulations s
+            JOIN clients c ON s.client_id = c.id
+            WHERE s.user_id = %s
+            ORDER BY s.created_at DESC
+        """, (user_id,))
+        rows = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        
+        return [{
+            "id": row[0],
+            "client_id": row[1],
+            "amount": float(row[2]),
+            "duration": row[3],
+            "interest_rate": float(row[4]),
+            "monthly_payment": float(row[5]),
+            "created_at": str(row[6]),
+            "client_name": row[7],
+            "client_email": row[8]
+        } for row in rows]
 
 def CalculerMensualité39_bis2_ANCIEN(N,C2,T,ASSU,apport,mois,annee,fraisAgence,fraisNotaire,TRAVAUX,revalorisationBien):
     """Fonction originale - copiée exactement"""

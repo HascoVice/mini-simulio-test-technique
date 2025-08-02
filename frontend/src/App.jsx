@@ -1,17 +1,19 @@
 import { useState, useEffect } from 'react';
+import { Home, Calculator, Users, LogOut, History } from 'lucide-react';
 import Login from './components/Login';
 import ClientForm from './components/ClientForm';
 import ClientList from './components/ClientList';
 import SimulationForm from './components/SimulationForm';
+import SimulationsList from './components/SimulationsList';
 import { authService } from './services/authService';
-import './App.css';
 
 function App() {
   const [token, setToken] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState('simulation'); // Par défaut sur le simulateur
+  const [activeTab, setActiveTab] = useState('simulation');
+  const [selectedClientForSimulation, setSelectedClientForSimulation] = useState(null);
 
   useEffect(() => {
     const savedToken = authService.getToken();
@@ -44,12 +46,17 @@ function App() {
     setRefreshTrigger(prev => prev + 1);
   };
 
+  const handleSimulateClient = (client) => {
+    setSelectedClientForSimulation(client);
+    setActiveTab('simulation');
+  };
+
   if (!isAuthenticated) {
     return (
-      <div>
+      <div className="min-h-screen bg-gray-50">
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
+          <div className="bg-red-50 border-l-4 border-red-400 p-4 m-4 rounded-lg">
+            <p className="text-sm text-red-700">{error}</p>
           </div>
         )}
         <Login onLogin={handleLogin} />
@@ -59,75 +66,96 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-blue-600">Simulio</h1>
+      {/* Navigation moderne */}
+      <nav className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo */}
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg">
+                <Home className="w-4 h-4 text-white" />
+              </div>
+              <h1 className="text-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                Simulio
+              </h1>
             </div>
             
             {/* Navigation tabs */}
-            <div className="flex items-center space-x-8">
+            <div className="flex items-center space-x-1">
               <button
                 onClick={() => setActiveTab('simulation')}
-                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                   activeTab === 'simulation'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'bg-green-100 text-green-700 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
                 }`}
               >
-                Simulateur
+                <Calculator className="w-4 h-4" />
+                <span>Simulateur</span>
               </button>
               <button
                 onClick={() => setActiveTab('clients')}
-                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                   activeTab === 'clients'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'bg-green-100 text-green-700 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
                 }`}
               >
-                Gestion clients
+                <Users className="w-4 h-4" />
+                <span>Clients</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('history')}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  activeTab === 'history'
+                    ? 'bg-green-100 text-green-700 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                }`}
+              >
+                <History className="w-4 h-4" />
+                <span>Historique</span>
               </button>
             </div>
             
-            <div className="flex items-center">
-              <button
-                onClick={handleLogout}
-                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-              >
-                Déconnexion
-              </button>
-            </div>
+            {/* Bouton déconnexion */}
+            <button
+              onClick={handleLogout}
+              className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all duration-200"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden sm:inline">Déconnexion</span>
+            </button>
           </div>
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          {activeTab === 'simulation' ? (
-            <SimulationForm onTokenExpired={handleTokenExpired} />
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Formulaire de création */}
-              <div>
-                <ClientForm 
-                  token={token} 
-                  onClientCreated={handleClientCreated}
-                  onTokenExpired={handleTokenExpired}
-                />
-              </div>
-              
-              {/* Liste des clients */}
-              <div>
-                <ClientList 
-                  token={token} 
-                  refreshTrigger={refreshTrigger}
-                  onTokenExpired={handleTokenExpired}
-                />
-              </div>
-            </div>
-          )}
-        </div>
+      {/* Contenu principal */}
+      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        {activeTab === 'simulation' && (
+          <SimulationForm 
+            onTokenExpired={handleTokenExpired}
+            preSelectedClient={selectedClientForSimulation}
+            onClientUsed={() => setSelectedClientForSimulation(null)}
+          />
+        )}
+        {activeTab === 'clients' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ClientForm 
+              token={token} 
+              onClientCreated={handleClientCreated}
+              onTokenExpired={handleTokenExpired}
+            />
+            <ClientList 
+              token={token} 
+              refreshTrigger={refreshTrigger}
+              onTokenExpired={handleTokenExpired}
+              onSimulateClient={handleSimulateClient}
+            />
+          </div>
+        )}
+        {activeTab === 'history' && (
+          <SimulationsList onTokenExpired={handleTokenExpired} />
+        )}
       </main>
     </div>
   );

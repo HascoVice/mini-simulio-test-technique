@@ -133,3 +133,51 @@ def save_simulation():
     
     except Exception as e:
         return jsonify({'msg': 'Erreur lors de la sauvegarde', 'error': str(e)}), 500
+
+@simulation_bp.route('/client/<int:client_id>', methods=['GET'])
+@jwt_required()
+def get_client_simulations(client_id):
+    """Récupère toutes les simulations d'un client"""
+    user_id = int(get_jwt_identity())
+    
+    try:
+        # Vérifier que le client appartient à l'utilisateur
+        client = Client.get_by_id(client_id)
+        if not client or client['user_id'] != user_id:
+            return jsonify({'msg': 'Client non trouvé ou non autorisé'}), 403
+        
+        # Récupérer les simulations
+        simulations = Simulation.get_by_client(client_id)
+        return jsonify(simulations)
+    
+    except Exception as e:
+        return jsonify({'msg': 'Erreur lors de la récupération', 'error': str(e)}), 500
+
+@simulation_bp.route('/<int:simulation_id>', methods=['GET'])
+@jwt_required()
+def get_simulation_detail(simulation_id):
+    """Récupère le détail d'une simulation"""
+    user_id = int(get_jwt_identity())
+    
+    try:
+        simulation = Simulation.get_by_id(simulation_id)
+        if not simulation or simulation['user_id'] != user_id:
+            return jsonify({'msg': 'Simulation non trouvée ou non autorisée'}), 403
+        
+        return jsonify(simulation)
+    
+    except Exception as e:
+        return jsonify({'msg': 'Erreur lors de la récupération', 'error': str(e)}), 500
+
+@simulation_bp.route('/user', methods=['GET'])
+@jwt_required()
+def get_user_simulations():
+    """Récupère toutes les simulations de l'utilisateur connecté"""
+    user_id = int(get_jwt_identity())
+    
+    try:
+        simulations = Simulation.get_by_user(user_id)
+        return jsonify(simulations)
+    
+    except Exception as e:
+        return jsonify({'msg': 'Erreur lors de la récupération', 'error': str(e)}), 500
