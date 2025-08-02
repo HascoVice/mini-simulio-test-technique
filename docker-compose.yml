@@ -35,3 +35,12 @@ services:
       volumes:
         - ./frontend/src:/app/src
       restart: always
+
+    adminer:
+      container_name: adminer
+      image: adminer:latest
+      ports:
+        - "8080:8080"
+      restart: always
+      depends_on:
+        - mysql

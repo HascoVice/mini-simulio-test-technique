@@ -4,6 +4,7 @@ from flask_cors import CORS
 from datetime import timedelta
 from app.routes.auth_routes import auth_bp
 from app.routes.client_routes import client_bp
+from app.routes.simulation_routes import simulation_bp  # ← Ajouter
 
 app = Flask(__name__)
 app.config["JWT_SECRET_KEY"] = "votre_cle_secrete"
@@ -20,6 +21,7 @@ def expired_token_callback(jwt_header, jwt_payload):
 # Enregistrer les blueprints
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(client_bp, url_prefix='/api/clients')
+app.register_blueprint(simulation_bp, url_prefix='/api/simulations')  # ← Ajouter
 
 @app.route('/api/hello', methods=['GET'])
 def hello():

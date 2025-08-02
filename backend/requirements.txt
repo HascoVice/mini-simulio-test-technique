@@ -5,3 +5,6 @@ flask-cors
 flask-mysql
 flask-jwt-extended
 bcrypt
+pandas
+numpy
+numpy-financial
