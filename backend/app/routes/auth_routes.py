@@ -15,5 +15,6 @@ def login():
     if not user or not bcrypt.checkpw(password.encode(), user['password'].encode()):
         return jsonify({'msg': 'Email ou mot de passe incorrect'}), 401
     
-    access_token = create_access_token(identity=user['id'])
+    # ✅ Convertir l'ID en string
+    access_token = create_access_token(identity=str(user['id']))
     return jsonify({'access_token': access_token})

@@ -1,17 +1,18 @@
 from flask import Flask, jsonify
 from flask_jwt_extended import JWTManager, jwt_required
-from flask_cors import CORS  # ← Ajouter ça
+from flask_cors import CORS
 from app.routes.auth_routes import auth_bp
+from app.routes.client_routes import client_bp  # ← Ajouter ça
 
 app = Flask(__name__)
 app.config["JWT_SECRET_KEY"] = "votre_cle_secrete"
 jwt = JWTManager(app)
 
-# ✅ AJOUTER CORS
-CORS(app, origins=["http://localhost:5173"])  # Autoriser le frontend React
+CORS(app, origins=["http://localhost:5173"])
 
-# Enregistrer le blueprint d'authentification
+# Enregistrer les blueprints
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
+app.register_blueprint(client_bp, url_prefix='/api/clients')  # ← Ajouter ça
 
 @app.route('/api/hello', methods=['GET'])
 def hello():

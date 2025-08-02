@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import Login from './components/Login';
+import ClientForm from './components/ClientForm';
+import ClientList from './components/ClientList';
 import './App.css';
 
 function App() {
   const [token, setToken] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     // Vérifier si un token existe déjà
@@ -24,6 +27,11 @@ function App() {
     localStorage.removeItem('token');
     setToken(null);
     setIsAuthenticated(false);
+  };
+
+  const handleClientCreated = () => {
+    // Déclenche le rafraîchissement de la liste des clients
+    setRefreshTrigger(prev => prev + 1);
   };
 
   if (!isAuthenticated) {
@@ -52,17 +60,21 @@ function App() {
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          <div className="border-4 border-dashed border-gray-200 rounded-lg h-96 flex items-center justify-center">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Bienvenue dans Simulio !
-              </h2>
-              <p className="text-gray-600">
-                Vous êtes connecté avec succès.
-              </p>
-              <p className="text-sm text-gray-500 mt-2">
-                Token : {token?.substring(0, 20)}...
-              </p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Formulaire de création */}
+            <div>
+              <ClientForm 
+                token={token} 
+                onClientCreated={handleClientCreated}
+              />
+            </div>
+            
+            {/* Liste des clients */}
+            <div>
+              <ClientList 
+                token={token} 
+                refreshTrigger={refreshTrigger}
+              />
             </div>
           </div>
         </div>
