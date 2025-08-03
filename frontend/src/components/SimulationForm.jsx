@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Calculator, Users, Euro, TrendingUp, Save, AlertCircle, CheckCircle } from 'lucide-react';
 import { authService } from '../services/authService';
+import SliderInput from './SliderInput';
 
 const SimulationForm = ({ onTokenExpired, preSelectedClient, onClientUsed, editingSimulation, setEditingSimulation }) => {
   const [clients, setClients] = useState([]);
@@ -290,165 +291,129 @@ const SimulationForm = ({ onTokenExpired, preSelectedClient, onClientUsed, editi
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Prix du bien */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Prix du bien : <span className="text-green-600">{formatCurrency(simulation.prix_bien)}</span>
-                </label>
-                <input
-                  type="range"
-                  min="100000"
-                  max="2000000"
-                  step="10000"
-                  value={simulation.prix_bien}
-                  onChange={(e) => handleSliderChange('prix_bien', e.target.value)}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-blue"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>100k€</span>
-                  <span>2M€</span>
-                </div>
-              </div>
+              {/* Prix du bien - Style d'origine */}
+              <SliderInput
+                label="Prix du bien"
+                value={simulation.prix_bien}
+                onChange={(value) => handleSliderChange('prix_bien', value)}
+                min={100000}
+                max={2000000}
+                step={10000}
+                unit="€"
+                sliderClass="slider-blue"
+                inputWidth="w-20"
+                formatValue={formatCurrency}
+                minLabel="100k€"
+                maxLabel="2M€"
+              />
 
-              {/* Travaux */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Travaux : <span className="text-green-600">{formatCurrency(simulation.travaux)}</span>
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="200000"
-                  step="5000"
-                  value={simulation.travaux}
-                  onChange={(e) => handleSliderChange('travaux', e.target.value)}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-green"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>0€</span>
-                  <span>200k€</span>
-                </div>
-              </div>
+              {/* Travaux - Style d'origine */}
+              <SliderInput
+                label="Travaux"
+                value={simulation.travaux}
+                onChange={(value) => handleSliderChange('travaux', value)}
+                min={0}
+                max={200000}
+                step={5000}
+                unit="€"
+                sliderClass="slider-green"
+                inputWidth="w-20"
+                formatValue={formatCurrency}
+                minLabel="0€"
+                maxLabel="200k€"
+              />
 
-              {/* Durée */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Durée : <span className="text-green-600">{simulation.duree_annees} ans</span>
-                </label>
-                <input
-                  type="range"
-                  min="10"
-                  max="30"
-                  step="1"
-                  value={simulation.duree_annees}
-                  onChange={(e) => handleSliderChange('duree_annees', e.target.value)}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-purple"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>10 ans</span>
-                  <span>30 ans</span>
-                </div>
-              </div>
+              {/* Durée - Style d'origine */}
+              <SliderInput
+                label="Durée"
+                value={simulation.duree_annees}
+                onChange={(value) => handleSliderChange('duree_annees', value)}
+                min={10}
+                max={30}
+                step={1}
+                unit="ans"
+                sliderClass="slider-purple"
+                inputWidth="w-20"
+                minLabel="10 ans"
+                maxLabel="30 ans"
+              />
 
-              {/* Taux d'intérêt */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Taux d'intérêt : <span className="text-green-600">{simulation.taux_interet}%</span>
-                </label>
-                <input
-                  type="range"
-                  min="1"
-                  max="8"
-                  step="0.1"
-                  value={simulation.taux_interet}
-                  onChange={(e) => handleSliderChange('taux_interet', e.target.value)}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-red"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>1%</span>
-                  <span>8%</span>
-                </div>
-              </div>
+              {/* Taux d'intérêt - Style d'origine */}
+              <SliderInput
+                label="Taux d'intérêt"
+                value={simulation.taux_interet}
+                onChange={(value) => handleSliderChange('taux_interet', value)}
+                min={1}
+                max={8}
+                step={0.1}
+                unit="%"
+                sliderClass="slider-red"
+                inputWidth="w-20"
+                minLabel="1%"
+                maxLabel="8%"
+              />
 
-              {/* Taux d'assurance */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Taux d'assurance : <span className="text-green-600">{simulation.taux_assurance}%</span>
-                </label>
-                <input
-                  type="range"
-                  min="0.1"
-                  max="1"
-                  step="0.05"
-                  value={simulation.taux_assurance}
-                  onChange={(e) => handleSliderChange('taux_assurance', e.target.value)}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-orange"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>0.1%</span>
-                  <span>1%</span>
-                </div>
-              </div>
+              {/* Taux d'assurance - Style d'origine */}
+              <SliderInput
+                label="Taux d'assurance"
+                value={simulation.taux_assurance}
+                onChange={(value) => handleSliderChange('taux_assurance', value)}
+                min={0.1}
+                max={1}
+                step={0.05}
+                unit="%"
+                sliderClass="slider-orange"
+                inputWidth="w-20"
+                formatValue={(value) => `${value}%`}
+                minLabel="0.1%"
+                maxLabel="1%"
+              />
 
-              {/* Apport */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Apport : <span className="text-green-600">{formatCurrency(simulation.apport)}</span>
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="500000"
-                  step="5000"
-                  value={simulation.apport}
-                  onChange={(e) => handleSliderChange('apport', e.target.value)}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-yellow"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>0€</span>
-                  <span>500k€</span>
-                </div>
-              </div>
+              {/* Apport - Style d'origine */}
+              <SliderInput
+                label="Apport"
+                value={simulation.apport}
+                onChange={(value) => handleSliderChange('apport', value)}
+                min={0}
+                max={500000}
+                step={5000}
+                unit="€"
+                sliderClass="slider-yellow"
+                inputWidth="w-20"
+                formatValue={formatCurrency}
+                minLabel="0€"
+                maxLabel="500k€"
+              />
 
-              {/* Frais de notaire */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Frais de notaire : <span className="text-green-600">{simulation.frais_notaire_pct}%</span>
-                </label>
-                <input
-                  type="range"
-                  min="2"
-                  max="10"
-                  step="0.5"
-                  value={simulation.frais_notaire_pct}
-                  onChange={(e) => handleSliderChange('frais_notaire_pct', e.target.value)}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-indigo"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>2%</span>
-                  <span>10%</span>
-                </div>
-              </div>
+              {/* Frais de notaire - Style d'origine */}
+              <SliderInput
+                label="Frais de notaire"
+                value={simulation.frais_notaire_pct}
+                onChange={(value) => handleSliderChange('frais_notaire_pct', value)}
+                min={2}
+                max={10}
+                step={0.5}
+                unit="%"
+                sliderClass="slider-indigo"
+                inputWidth="w-20"
+                minLabel="2%"
+                maxLabel="10%"
+              />
 
-              {/* Frais d'agence */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Frais d'agence : <span className="text-green-600">{simulation.frais_agence_pct}%</span>
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="8"
-                  step="0.5"
-                  value={simulation.frais_agence_pct}
-                  onChange={(e) => handleSliderChange('frais_agence_pct', e.target.value)}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-pink"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>0%</span>
-                  <span>8%</span>
-                </div>
-              </div>
+              {/* Frais d'agence - Style d'origine */}
+              <SliderInput
+                label="Frais d'agence"
+                value={simulation.frais_agence_pct}
+                onChange={(value) => handleSliderChange('frais_agence_pct', value)}
+                min={0}
+                max={8}
+                step={0.5}
+                unit="%"
+                sliderClass="slider-pink"
+                inputWidth="w-20"
+                minLabel="0%"
+                maxLabel="8%"
+              />
             </div>
           </div>
         </div>
@@ -462,6 +427,35 @@ const SimulationForm = ({ onTokenExpired, preSelectedClient, onClientUsed, editi
             <h3 className="text-lg font-semibold text-gray-900">Résultats</h3>
           </div>
           
+          {/* Message quand aucun client n'est sélectionné - Hauteur fixe centrée */}
+          {!selectedClient && !loading && (
+            <div className="flex items-center justify-center h-96">
+              <div className="text-center max-w-sm">
+                {/* Icône avec fond subtil */}
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
+                  <Users className="w-10 h-10 text-blue-600" />
+                </div>
+                
+                {/* Titre avec emoji discret */}
+                <h4 className="text-xl font-bold text-gray-800 mb-3">
+                  👤 Sélectionnez un client
+                </h4>
+                
+                {/* Description plus détaillée */}
+                <p className="text-gray-600 leading-relaxed">
+                  Choisissez un client dans la liste pour commencer à calculer votre simulation de crédit immobilier
+                </p>
+                
+                {/* Points décoratifs */}
+                <div className="flex items-center justify-center space-x-2 mt-6">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {loading && (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
@@ -469,7 +463,7 @@ const SimulationForm = ({ onTokenExpired, preSelectedClient, onClientUsed, editi
             </div>
           )}
 
-          {result && !loading && (
+          {result && !loading && selectedClient && (
             <div className="space-y-4">
               {/* Mensualité principale */}
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border-l-4 border-green-500">
@@ -479,7 +473,7 @@ const SimulationForm = ({ onTokenExpired, preSelectedClient, onClientUsed, editi
                 </p>
               </div>
 
-              {/* Détails */}
+              {/* Détails existants... */}
               <div className="space-y-3">
                 <div className="flex justify-between items-center py-2 border-b border-gray-100">
                   <span className="text-xs text-gray-600">Montant financé</span>
@@ -507,7 +501,7 @@ const SimulationForm = ({ onTokenExpired, preSelectedClient, onClientUsed, editi
                 </div>
               </div>
 
-              {/* Bouton de sauvegarde modifié */}
+              {/* Bouton de sauvegarde existant... */}
               <button
                 onClick={editingSimulation ? updateSimulation : saveSimulation}
                 disabled={saving || !selectedClient}
@@ -529,19 +523,11 @@ const SimulationForm = ({ onTokenExpired, preSelectedClient, onClientUsed, editi
                 )}
               </button>
 
-              {/* Bouton d'annulation en mode édition */}
-              {editingSimulation && (
-                <button
-                  onClick={() => setEditingSimulation(null)}
-                  className="w-full flex justify-center items-center py-2 px-4 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200 mt-2"
-                >
-                  Annuler la modification
-                </button>
-              )}
+              {/* Bouton d'annulation existant... */}
             </div>
           )}
 
-          {/* Messages */}
+          {/* Messages d'erreur et succès existants... */}
           {error && (
             <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-lg flex items-start space-x-2">
               <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
