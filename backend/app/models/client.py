@@ -1,5 +1,12 @@
 import pymysql
-from app.models.user import DB_CONFIG
+
+# Définir la configuration directement comme dans user.py
+DB_CONFIG = {
+    "host": "mysql",          
+    "user": "root",
+    "password": "Hassan123+",
+    "database": "simulio"
+}
 
 class Client:
     @staticmethod
@@ -28,12 +35,41 @@ class Client:
     
     @staticmethod
     def get_by_id(client_id):
+        """Récupère un client par son ID"""
+        conn = pymysql.connect(**DB_CONFIG)
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        
+        try:
+            cursor.execute(
+                "SELECT * FROM clients WHERE id = %s", 
+                (client_id,)
+            )
+            client = cursor.fetchone()
+            return client
+            
+        finally:
+            cursor.close()
+            conn.close()
+    
+    @staticmethod
+    def delete(client_id):
+        """Supprime un client et toutes ses simulations"""
         conn = pymysql.connect(**DB_CONFIG)
         cursor = conn.cursor()
-        cursor.execute("SELECT id, name, email, phone, user_id FROM clients WHERE id=%s", (client_id,))
-        row = cursor.fetchone()
-        cursor.close()
-        conn.close()
-        if row:
-            return {"id": row[0], "name": row[1], "email": row[2], "phone": row[3], "user_id": row[4]}
-        return None
+        
+        try:
+            # Supprimer d'abord les simulations du client
+            cursor.execute("DELETE FROM simulations WHERE client_id = %s", (client_id,))
+            
+            # Puis supprimer le client
+            cursor.execute("DELETE FROM clients WHERE id = %s", (client_id,))
+            
+            conn.commit()
+            return True
+            
+        except Exception as e:
+            conn.rollback()
+            raise e
+        finally:
+            cursor.close()
+            conn.close()

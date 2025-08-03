@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 import numpy_financial
 import datetime
+from flask import jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 class Simulation:
     @staticmethod
@@ -112,53 +114,43 @@ class Simulation:
         """Récupère une simulation par son ID avec tous les détails"""
         conn = pymysql.connect(**DB_CONFIG)
         cursor = conn.cursor(pymysql.cursors.DictCursor)
-        cursor.execute(
-            """SELECT s.*, c.name as client_name, c.email as client_email 
-               FROM simulations s 
-               LEFT JOIN clients c ON s.client_id = c.id 
-               WHERE s.id = %s""", 
-            (simulation_id,)
-        )
-        result = cursor.fetchone()
-        cursor.close()
-        conn.close()
         
-        # Mapper les noms de colonnes pour la compatibilité frontend
-        if result:
-            result['amount'] = result.get('montant_finance', result.get('amount', 0))
-            result['duration'] = result.get('duration', 0)
-            result['interest_rate'] = result.get('interest_rate', 0)
-            result['monthly_payment'] = result.get('monthly_payment', 0)
+        try:
+            cursor.execute("""
+                SELECT s.*, c.name as client_name, c.email as client_email, c.user_id
+                FROM simulations s
+                JOIN clients c ON s.client_id = c.id
+                WHERE s.id = %s
+            """, (simulation_id,))
             
-            # IMPORTANT: S'assurer que user_id est présent
-            print(f"DEBUG - Simulation récupérée: {result}")  # Pour debug
-            print(f"DEBUG - user_id dans result: {result.get('user_id')}")  # Pour debug
-        
-        return result
+            simulation = cursor.fetchone()
+            return simulation
+            
+        finally:
+            cursor.close()
+            conn.close()
     
     @staticmethod
     def get_by_user(user_id):
         """Récupère toutes les simulations d'un utilisateur avec tous les détails"""
         conn = pymysql.connect(**DB_CONFIG)
         cursor = conn.cursor(pymysql.cursors.DictCursor)
-        cursor.execute(
-            """SELECT s.*, c.name as client_name, c.email as client_email 
-               FROM simulations s 
-               LEFT JOIN clients c ON s.client_id = c.id 
-               WHERE s.user_id = %s 
-               ORDER BY s.created_at DESC""", 
-            (user_id,)
-        )
-        simulations = cursor.fetchall()
-        cursor.close()
-        conn.close()
         
-        # Mapper les noms pour chaque simulation
-        for simulation in simulations:
-            simulation['amount'] = simulation.get('montant_finance', simulation.get('amount', 0))
-            # Les autres champs duration, interest_rate, monthly_payment sont déjà corrects
-        
-        return simulations
+        try:
+            cursor.execute("""
+                SELECT s.*, c.name as client_name, c.email as client_email
+                FROM simulations s
+                JOIN clients c ON s.client_id = c.id
+                WHERE c.user_id = %s
+                ORDER BY s.created_at DESC
+            """, (user_id,))
+            
+            simulations = cursor.fetchall()
+            return simulations
+            
+        finally:
+            cursor.close()
+            conn.close()
     
     @staticmethod
     def update(simulation_id, simulation_data):
@@ -196,6 +188,48 @@ class Simulation:
         cursor.close()
         conn.close()
         return True
+    
+    @staticmethod
+    def delete(simulation_id):
+        """Supprime une simulation"""
+        conn = pymysql.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM simulations WHERE id = %s", (simulation_id,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return True
+
+    @staticmethod
+    def delete_simulation(simulation_id):
+        """Supprime une simulation"""
+        conn = pymysql.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        try:
+            # Vérifier que la simulation existe
+            cursor.execute("SELECT * FROM simulations WHERE id = %s", (simulation_id,))
+            simulation = cursor.fetchone()
+            if not simulation:
+                return jsonify({'msg': 'Simulation non trouvée'}), 404
+            
+            # Vérifier que la simulation appartient à l'utilisateur courant
+            current_user_id = get_jwt_identity()
+            if int(current_user_id) != int(simulation['user_id']):
+                return jsonify({'msg': 'Simulation non autorisée'}), 403
+            
+            # Supprimer la simulation
+            cursor.execute("DELETE FROM simulations WHERE id = %s", (simulation_id,))
+            conn.commit()
+            
+            return jsonify({'msg': 'Simulation supprimée avec succès'}), 200
+        
+        except Exception as e:
+            print(f"Erreur lors de la suppression de la simulation: {str(e)}")
+            return jsonify({'msg': f'Erreur lors de la suppression: {str(e)}'}), 500
+        
+        finally:
+            cursor.close()
+            conn.close()
 
 def CalculerMensualité39_bis2_ANCIEN(N,C2,T,ASSU,apport,mois,annee,fraisAgence,fraisNotaire,TRAVAUX,revalorisationBien):
     """Fonction originale - copiée exactement"""

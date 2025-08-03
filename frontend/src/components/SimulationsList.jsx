@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react';
-import { History, Calendar, Euro, User, Eye, X, Edit } from 'lucide-react';
+import { History, Calendar, Euro, User, Eye, X, Edit, Trash2 } from 'lucide-react';
 import { authService } from '../services/authService';
 
 const SimulationsList = ({ onTokenExpired, onEditSimulation }) => {
   const [simulations, setSimulations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(''); // ✅ AJOUTER CETTE LIGNE
   const [selectedSimulation, setSelectedSimulation] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [simulationToDelete, setSimulationToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchSimulations = async () => {
     try {
@@ -60,6 +64,44 @@ const SimulationsList = ({ onTokenExpired, onEditSimulation }) => {
       onEditSimulation(simulation);
     }
   };
+
+  const handleDeleteSimulation = async (simulation) => {
+    setSimulationToDelete(simulation);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteSimulation = async () => {
+    if (!simulationToDelete) return;
+
+    setDeleting(true);
+    try {
+      const response = await authService.apiCall(`http://localhost:5000/api/simulations/${simulationToDelete.id}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        setSuccess('Simulation supprimée avec succès !');
+        
+        // ✅ Recharger la liste après suppression
+        await fetchSimulations(); // ✅ Ajouter await pour être sûr
+        
+        setShowDeleteModal(false);
+        setSimulationToDelete(null);
+        setTimeout(() => setSuccess(''), 3000);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.msg || 'Erreur lors de la suppression');
+      }
+    } catch (err) {
+      if (err.message === 'TOKEN_EXPIRED') {
+        onTokenExpired();
+      } else {
+        setError('Erreur de connexion');
+      }
+    } finally {
+      setDeleting(false);
+    }
+  };
   
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('fr-FR', {
@@ -109,6 +151,13 @@ const SimulationsList = ({ onTokenExpired, onEditSimulation }) => {
           </h3>
         </div>
 
+        {/* ✅ AJOUTER l'affichage du message de succès */}
+        {success && (
+          <div className="bg-green-50 border-l-4 border-green-400 p-4 rounded-lg mb-6">
+            <p className="text-sm text-green-700">{success}</p>
+          </div>
+        )}
+
         {error && (
           <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-lg mb-6">
             <p className="text-sm text-red-700">{error}</p>
@@ -128,21 +177,28 @@ const SimulationsList = ({ onTokenExpired, onEditSimulation }) => {
             {simulations.map((simulation) => (
               <div
                 key={simulation.id}
-                className="border border-gray-200 rounded-lg p-4 hover:border-purple-300 hover:shadow-md transition-all duration-200"
+                className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:border-purple-300 hover:shadow-md transition-all duration-200"
               >
-                <div className="flex items-center justify-between">
+                {/* Layout mobile : tout empilé verticalement */}
+                <div className="flex flex-col space-y-3">
+                  
+                  {/* Informations principales */}
                   <div className="flex-1">
                     {/* Client info */}
-                    <div className="flex items-center space-x-2 mb-2">
-                      <User className="w-4 h-4 text-gray-400" />
-                      <span className="font-semibold text-gray-900">{simulation.client_name}</span>
-                      <span className="text-sm text-gray-500">({simulation.client_email})</span>
+                    <div className="flex items-start space-x-2 mb-2">
+                      <User className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
+                          <span className="font-semibold text-gray-900">{simulation.client_name}</span>
+                          <span className="text-sm text-gray-500 truncate">({simulation.client_email})</span>
+                        </div>
+                      </div>
                     </div>
                     
-                    {/* Simulation details */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    {/* Simulation details - Stack sur mobile, grid sur desktop */}
+                    <div className="space-y-2 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-4 text-sm mb-2">
                       <div className="flex items-center space-x-2">
-                        <Euro className="w-3 h-3 text-green-600" />
+                        <Euro className="w-3 h-3 text-green-600 flex-shrink-0" />
                         <span className="text-gray-600">Mensualité:</span>
                         <span className="font-semibold text-green-600">
                           {formatCurrency(simulation.monthly_payment)}
@@ -163,28 +219,35 @@ const SimulationsList = ({ onTokenExpired, onEditSimulation }) => {
                     </div>
                     
                     {/* Date */}
-                    <div className="flex items-center space-x-2 mt-2 text-xs text-gray-500">
-                      <Calendar className="w-3 h-3" />
+                    <div className="flex items-center space-x-2 text-xs text-gray-500">
+                      <Calendar className="w-3 h-3 flex-shrink-0" />
                       <span>Créée le {formatDate(simulation.created_at)}</span>
                     </div>
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex-shrink-0 ml-4">
-                    <div className="flex space-x-2">
+                  {/* Actions - Rangée séparée sur mobile */}
+                  <div className="border-t border-gray-100 pt-3 sm:border-t-0 sm:pt-0">
+                    <div className="grid grid-cols-3 gap-2 sm:flex sm:space-x-2 sm:justify-end">
                       <button 
                         onClick={() => handleViewDetails(simulation)}
-                        className="flex items-center space-x-1 px-3 py-2 text-xs font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors"
+                        className="flex items-center justify-center space-x-1 px-2 py-2 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
                       >
-                        <Eye className="w-3 h-3" />
-                        <span>Détails</span>
+                        <Eye className="w-4 h-4" />
+                        <span className="hidden xs:inline sm:inline">Détails</span>
                       </button>
                       <button 
                         onClick={() => handleEditSimulation(simulation)}
-                        className="flex items-center space-x-1 px-3 py-2 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                        className="flex items-center justify-center space-x-1 px-2 py-2 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
                       >
-                        <Edit className="w-3 h-3" />
-                        <span>Modifier</span>
+                        <Edit className="w-4 h-4" />
+                        <span className="hidden xs:inline sm:inline">Modifier</span>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteSimulation(simulation)}
+                        className="flex items-center justify-center space-x-1 px-2 py-2 text-xs font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span className="hidden xs:inline sm:inline">Supprimer</span>
                       </button>
                     </div>
                   </div>
@@ -299,6 +362,57 @@ const SimulationsList = ({ onTokenExpired, onEditSimulation }) => {
                     <span className="font-semibold">{formatDate(selectedSimulation.created_at)}</span>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmation de suppression */}
+      {showDeleteModal && simulationToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full">
+                  <Trash2 className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Supprimer la simulation</h3>
+                  <p className="text-sm text-gray-600">Cette action est irréversible</p>
+                </div>
+              </div>
+              
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                <p className="text-sm text-red-800">
+                  <strong>Simulation #{simulationToDelete.id}</strong>
+                </p>
+                <p className="text-sm text-red-700">
+                  Client : {simulationToDelete.client_name}
+                </p>
+                <p className="text-sm text-red-700">
+                  Mensualité : {formatCurrency(simulationToDelete.monthly_payment)}
+                </p>
+              </div>
+              
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setSimulationToDelete(null);
+                  }}
+                  disabled={deleting}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={confirmDeleteSimulation}
+                  disabled={deleting}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+                >
+                  {deleting ? 'Suppression...' : 'Supprimer'}
+                </button>
               </div>
             </div>
           </div>

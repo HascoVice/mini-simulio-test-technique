@@ -124,58 +124,58 @@ function App() {
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            {/* Logo Simulio */}
+            {/* Logo Simulio - Réduit sur mobile */}
             <div className="flex items-center space-x-3">
-              <div className="flex items-center justify-center w-24 h-12">
+              <div className="flex items-center justify-center w-16 sm:w-24 h-8 sm:h-12">
                 <img 
                   src={simulioLogo} 
-                  alt="" 
-                  className="h-10 w-auto"
+                  alt="Simulio" 
+                  className="h-6 sm:h-10 w-auto"
                 />
               </div>
             </div>
             
-            {/* Navigation tabs */}
+            {/* Navigation tabs - Responsive */}
             <div className="flex items-center space-x-1">
               <button
                 onClick={() => changeTab('clients')}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={`flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-2 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
                   activeTab === 'clients'
                     ? 'bg-green-100 text-green-700 shadow-sm'
                     : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
                 }`}
               >
                 <Users className="w-4 h-4" />
-                <span>Clients</span>
+                <span className="text-xs sm:text-sm">Clients</span>
               </button>
               <button
                 onClick={() => changeTab('simulation')}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={`flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-2 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
                   activeTab === 'simulation'
                     ? 'bg-green-100 text-green-700 shadow-sm'
                     : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
                 }`}
               >
                 <Calculator className="w-4 h-4" />
-                <span>Simulateur</span>
+                <span className="text-xs sm:text-sm">Simulateur</span>
               </button>
               <button
                 onClick={() => changeTab('history')}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={`flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-2 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
                   activeTab === 'history'
                     ? 'bg-green-100 text-green-700 shadow-sm'
                     : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
                 }`}
               >
                 <History className="w-4 h-4" />
-                <span>Historique</span>
+                <span className="text-xs sm:text-sm">Historique</span>
               </button>
             </div>
             
-            {/* Bouton déconnexion */}
+            {/* Bouton déconnexion - Mobile friendly */}
             <button
               onClick={handleLogout}
-              className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all duration-200"
+              className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all duration-200"
             >
               <LogOut className="w-4 h-4" />
               <span className="hidden sm:inline">Déconnexion</span>
@@ -184,10 +184,10 @@ function App() {
         </div>
       </nav>
 
-      {/* Contenu principal */}
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      {/* Contenu principal - Padding mobile */}
+      <main className="max-w-7xl mx-auto py-4 sm:py-6 px-4 sm:px-6 lg:px-8">
         {activeTab === 'clients' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             <ClientForm 
               token={token} 
               onClientCreated={handleClientCreated}
@@ -197,7 +197,7 @@ function App() {
               token={token} 
               refreshTrigger={refreshTrigger}
               onTokenExpired={handleTokenExpired}
-              onSimulateClient={handleSimulateClient}
+              onSelectClient={handleSimulateClient}
             />
           </div>
         )}

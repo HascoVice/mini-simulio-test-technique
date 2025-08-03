@@ -282,3 +282,23 @@ def update_simulation(simulation_id):
     except Exception as e:
         print(f"DEBUG - Erreur dans update_simulation: {str(e)}")
         return jsonify({"msg": f"Erreur: {str(e)}"}), 500
+
+@simulation_bp.route('/<int:simulation_id>', methods=['DELETE'])
+@jwt_required()
+def delete_simulation(simulation_id):
+    """Supprime une simulation"""
+    try:
+        current_user_id = get_jwt_identity()
+        
+        # Vérifier que la simulation appartient à l'utilisateur
+        simulation = Simulation.get_by_id(simulation_id)
+        if not simulation or int(simulation['user_id']) != int(current_user_id):
+            return jsonify({'msg': 'Simulation non trouvée ou non autorisée'}), 403
+        
+        # Supprimer la simulation
+        Simulation.delete(simulation_id)
+        
+        return jsonify({'msg': 'Simulation supprimée avec succès'}), 200
+        
+    except Exception as e:
+        return jsonify({'msg': f'Erreur lors de la suppression: {str(e)}'}), 500
