@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Home, Mail, Lock, Eye, EyeOff, Play } from 'lucide-react';
+import simulioLogo from '../assets/Simulio-logo.svg';
 
 const Login = ({ onLogin }) => {
   const [email, setEmail] = useState('');
@@ -51,13 +52,14 @@ const Login = ({ onLogin }) => {
         {/* Header avec logo */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl shadow-lg">
-              <Home className="w-6 h-6 text-white" />
+            <div className="flex items-center justify-center w-36 h-20">
+              <img 
+                src={simulioLogo} 
+                alt="" 
+                className="h-16 w-auto"
+              />
             </div>
           </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2">
-            Simulio
-          </h1>
           <p className="text-gray-600">Connectez-vous à votre espace conseiller</p>
         </div>
 

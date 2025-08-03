@@ -44,16 +44,34 @@ class Simulation:
     
     @staticmethod
     def create(client_id, user_id, simulation_data):
-        """Sauvegarde une simulation en base"""
+        """Sauvegarde une simulation complète en base"""
         conn = pymysql.connect(**DB_CONFIG)
         cursor = conn.cursor()
         cursor.execute(
             """INSERT INTO simulations 
-               (client_id, user_id, amount, duration, interest_rate, monthly_payment) 
-               VALUES (%s, %s, %s, %s, %s, %s)""",
-            (client_id, user_id, simulation_data['montant_finance'], 
-             simulation_data['duree'], simulation_data['taux_interet'], 
-             simulation_data['mensualite'])
+               (client_id, user_id, amount, duration, interest_rate, monthly_payment,
+                montant_finance, salaire_minimum, interets_totaux, assurance_totale,
+                frais_notaire, garantie_bancaire, frais_agence, travaux, apport,
+                prix_bien, taux_assurance, frais_agence_pct, frais_notaire_pct) 
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+            (client_id, user_id, 
+             simulation_data.get('montant_finance', 0),
+             simulation_data.get('duree_annees', 0), 
+             simulation_data.get('taux_interet', 0), 
+             simulation_data.get('mensualite', 0),
+             simulation_data.get('montant_finance', 0),
+             simulation_data.get('salaire_minimum', 0),
+             simulation_data.get('interets_totaux', 0),
+             simulation_data.get('assurance_totale', 0),
+             simulation_data.get('frais_notaire', 0),
+             simulation_data.get('garantie_bancaire', 0),
+             simulation_data.get('frais_agence', 0),
+             simulation_data.get('travaux', 0),
+             simulation_data.get('apport', 0),
+             simulation_data.get('prix_bien', 0),
+             simulation_data.get('taux_assurance', 0),
+             simulation_data.get('frais_agence_pct', 0),
+             simulation_data.get('frais_notaire_pct', 0))
         )
         conn.commit()
         simulation_id = cursor.lastrowid
@@ -91,65 +109,93 @@ class Simulation:
     
     @staticmethod
     def get_by_id(simulation_id):
-        """Récupère une simulation par son ID"""
+        """Récupère une simulation par son ID avec tous les détails"""
         conn = pymysql.connect(**DB_CONFIG)
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT s.id, s.client_id, s.user_id, s.amount, s.duration, 
-                   s.interest_rate, s.monthly_payment, s.created_at,
-                   c.name as client_name, c.email as client_email
-            FROM simulations s
-            JOIN clients c ON s.client_id = c.id
-            WHERE s.id = %s
-        """, (simulation_id,))
-        row = cursor.fetchone()
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        cursor.execute(
+            """SELECT s.*, c.name as client_name, c.email as client_email 
+               FROM simulations s 
+               LEFT JOIN clients c ON s.client_id = c.id 
+               WHERE s.id = %s""", 
+            (simulation_id,)
+        )
+        result = cursor.fetchone()
         cursor.close()
         conn.close()
         
-        if row:
-            return {
-                "id": row[0],
-                "client_id": row[1],
-                "user_id": row[2],
-                "amount": float(row[3]),
-                "duration": row[4],
-                "interest_rate": float(row[5]),
-                "monthly_payment": float(row[6]),
-                "created_at": str(row[7]),
-                "client_name": row[8],
-                "client_email": row[9]
-            }
-        return None
+        # Mapper les noms de colonnes pour la compatibilité frontend
+        if result:
+            result['amount'] = result.get('montant_finance', result.get('amount', 0))
+            result['duration'] = result.get('duration', 0)
+            result['interest_rate'] = result.get('interest_rate', 0)
+            result['monthly_payment'] = result.get('monthly_payment', 0)
+            
+            # IMPORTANT: S'assurer que user_id est présent
+            print(f"DEBUG - Simulation récupérée: {result}")  # Pour debug
+            print(f"DEBUG - user_id dans result: {result.get('user_id')}")  # Pour debug
+        
+        return result
     
     @staticmethod
     def get_by_user(user_id):
-        """Récupère toutes les simulations d'un utilisateur"""
+        """Récupère toutes les simulations d'un utilisateur avec tous les détails"""
         conn = pymysql.connect(**DB_CONFIG)
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT s.id, s.client_id, s.amount, s.duration, s.interest_rate, 
-                   s.monthly_payment, s.created_at,
-                   c.name as client_name, c.email as client_email
-            FROM simulations s
-            JOIN clients c ON s.client_id = c.id
-            WHERE s.user_id = %s
-            ORDER BY s.created_at DESC
-        """, (user_id,))
-        rows = cursor.fetchall()
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        cursor.execute(
+            """SELECT s.*, c.name as client_name, c.email as client_email 
+               FROM simulations s 
+               LEFT JOIN clients c ON s.client_id = c.id 
+               WHERE s.user_id = %s 
+               ORDER BY s.created_at DESC""", 
+            (user_id,)
+        )
+        simulations = cursor.fetchall()
         cursor.close()
         conn.close()
         
-        return [{
-            "id": row[0],
-            "client_id": row[1],
-            "amount": float(row[2]),
-            "duration": row[3],
-            "interest_rate": float(row[4]),
-            "monthly_payment": float(row[5]),
-            "created_at": str(row[6]),
-            "client_name": row[7],
-            "client_email": row[8]
-        } for row in rows]
+        # Mapper les noms pour chaque simulation
+        for simulation in simulations:
+            simulation['amount'] = simulation.get('montant_finance', simulation.get('amount', 0))
+            # Les autres champs duration, interest_rate, monthly_payment sont déjà corrects
+        
+        return simulations
+    
+    @staticmethod
+    def update(simulation_id, simulation_data):
+        """Met à jour une simulation existante"""
+        conn = pymysql.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        cursor.execute(
+            """UPDATE simulations SET 
+               amount = %s, duration = %s, interest_rate = %s, monthly_payment = %s,
+               montant_finance = %s, salaire_minimum = %s, interets_totaux = %s, 
+               assurance_totale = %s, frais_notaire = %s, garantie_bancaire = %s,
+               frais_agence = %s, travaux = %s, apport = %s, prix_bien = %s,
+               taux_assurance = %s, frais_agence_pct = %s, frais_notaire_pct = %s
+               WHERE id = %s""",
+            (simulation_data.get('montant_finance', 0),
+             simulation_data.get('duree_annees', 0),
+             simulation_data.get('taux_interet', 0),
+             simulation_data.get('mensualite', 0),
+             simulation_data.get('montant_finance', 0),
+             simulation_data.get('salaire_minimum', 0),
+             simulation_data.get('interets_totaux', 0),
+             simulation_data.get('assurance_totale', 0),
+             simulation_data.get('frais_notaire', 0),
+             simulation_data.get('garantie_bancaire', 0),
+             simulation_data.get('frais_agence', 0),
+             simulation_data.get('travaux', 0),
+             simulation_data.get('apport', 0),
+             simulation_data.get('prix_bien', 0),
+             simulation_data.get('taux_assurance', 0),
+             simulation_data.get('frais_agence_pct', 0),
+             simulation_data.get('frais_notaire_pct', 0),
+             simulation_id)
+        )
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return True
 
 def CalculerMensualité39_bis2_ANCIEN(N,C2,T,ASSU,apport,mois,annee,fraisAgence,fraisNotaire,TRAVAUX,revalorisationBien):
     """Fonction originale - copiée exactement"""

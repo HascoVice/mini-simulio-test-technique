@@ -2,20 +2,24 @@ import { useState, useEffect } from 'react';
 import { Calculator, Users, Euro, TrendingUp, Save, AlertCircle, CheckCircle } from 'lucide-react';
 import { authService } from '../services/authService';
 
-const SimulationForm = ({ onTokenExpired, preSelectedClient, onClientUsed }) => {
+const SimulationForm = ({ onTokenExpired, preSelectedClient, onClientUsed, editingSimulation, setEditingSimulation }) => {
   const [clients, setClients] = useState([]);
   const [selectedClient, setSelectedClient] = useState('');
-  const [simulation, setSimulation] = useState({
-    prix_bien: 834000,
-    travaux: 20000,
-    duree_annees: 25,
-    taux_interet: 3.5,
-    taux_assurance: 0.32,
-    apport: 50000,
-    frais_agence_pct: 3,
-    frais_notaire_pct: 7.5,
-    revalorisation_pct: 1
+  
+  // Valeurs de base minimales
+  const getDefaultSimulation = () => ({
+    prix_bien: 100000,
+    travaux: 0,
+    duree_annees: 10,
+    taux_interet: 1,
+    taux_assurance: 0.1,
+    apport: 0,
+    frais_agence_pct: 0,
+    frais_notaire_pct: 2,
+    revalorisation_pct: 0
   });
+
+  const [simulation, setSimulation] = useState(getDefaultSimulation());
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -31,6 +35,7 @@ const SimulationForm = ({ onTokenExpired, preSelectedClient, onClientUsed }) => 
   useEffect(() => {
     if (preSelectedClient && clients.length > 0) {
       setSelectedClient(preSelectedClient.id.toString());
+      resetSimulation();
       if (onClientUsed) {
         onClientUsed();
       }
@@ -39,8 +44,37 @@ const SimulationForm = ({ onTokenExpired, preSelectedClient, onClientUsed }) => 
 
   // Calculer automatiquement à chaque changement
   useEffect(() => {
-    calculateSimulation();
-  }, [simulation]);
+    if (selectedClient) {
+      calculateSimulation();
+    }
+  }, [simulation, selectedClient]);
+
+  // Gérer la simulation en cours de modification
+  useEffect(() => {
+    if (editingSimulation) {
+      console.log('Mode édition activé:', editingSimulation);
+      setSimulation({
+        prix_bien: editingSimulation.prix_bien || 100000,
+        travaux: editingSimulation.travaux || 0,
+        duree_annees: editingSimulation.duration || 10,
+        taux_interet: editingSimulation.interest_rate || 1,
+        taux_assurance: editingSimulation.taux_assurance || 0.1,
+        apport: editingSimulation.apport || 0,
+        frais_agence_pct: editingSimulation.frais_agence_pct || 0,
+        frais_notaire_pct: editingSimulation.frais_notaire_pct || 2,
+        revalorisation_pct: 0
+      });
+      setSelectedClient(editingSimulation.client_id?.toString() || '');
+    }
+  }, [editingSimulation]);
+
+  // Fonction pour reset la simulation aux valeurs minimales
+  const resetSimulation = () => {
+    setSimulation(getDefaultSimulation());
+    setResult(null);
+    setError('');
+    setSuccess('');
+  };
 
   const fetchClients = async () => {
     try {
@@ -48,9 +82,6 @@ const SimulationForm = ({ onTokenExpired, preSelectedClient, onClientUsed }) => 
       if (response.ok) {
         const data = await response.json();
         setClients(data);
-        if (data.length > 0 && !selectedClient) {
-          setSelectedClient(data[0].id);
-        }
       }
     } catch (err) {
       if (err.message === 'TOKEN_EXPIRED') {
@@ -60,6 +91,8 @@ const SimulationForm = ({ onTokenExpired, preSelectedClient, onClientUsed }) => 
   };
 
   const calculateSimulation = async () => {
+    if (!selectedClient) return;
+    
     setLoading(true);
     setError('');
     
@@ -137,6 +170,50 @@ const SimulationForm = ({ onTokenExpired, preSelectedClient, onClientUsed }) => 
     }
   };
 
+  // FONCTION DE MISE À JOUR (GARDE SEULEMENT CELLE-CI)
+  const updateSimulation = async () => {
+    if (!selectedClient) {
+      setError('Veuillez sélectionner un client');
+      return;
+    }
+
+    setSaving(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      console.log('Mise à jour simulation:', editingSimulation.id);
+      const response = await authService.apiCall(`http://localhost:5000/api/simulations/${editingSimulation.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          client_id: parseInt(selectedClient),
+          ...simulation,
+          mois: '02',
+          annee: '2025'
+        }),
+      });
+
+      if (response.ok) {
+        setSuccess('Simulation mise à jour avec succès !');
+        setTimeout(() => {
+          setSuccess('');
+          setEditingSimulation(null);
+        }, 2000);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.msg || 'Erreur de mise à jour');
+      }
+    } catch (err) {
+      if (err.message === 'TOKEN_EXPIRED') {
+        onTokenExpired();
+      } else {
+        setError('Erreur de connexion');
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
@@ -148,15 +225,27 @@ const SimulationForm = ({ onTokenExpired, preSelectedClient, onClientUsed }) => 
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header avec indicateur de mode */}
       <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
         <div className="flex items-center space-x-3 mb-2">
           <div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-lg">
             <Calculator className="w-4 h-4 text-green-600" />
           </div>
-          <h2 className="text-xl font-bold text-gray-900">Simulateur de Crédit Immobilier</h2>
+          <h2 className="text-xl font-bold text-gray-900">
+            {editingSimulation ? 'Modifier la simulation' : 'Simulateur de Crédit Immobilier'}
+          </h2>
         </div>
-        <p className="text-gray-600">Ajustez les paramètres pour calculer votre simulation en temps réel</p>
+        <p className="text-gray-600">
+          {editingSimulation ? 'Modifiez les paramètres et recalculez' : 'Ajustez les paramètres pour calculer votre simulation en temps réel'}
+        </p>
+        {editingSimulation && (
+          <div className="mt-3 p-3 bg-orange-50 border-l-4 border-orange-400 rounded-lg">
+            <p className="text-sm text-orange-700">
+              <strong>Mode édition :</strong> Simulation #{editingSimulation.id} 
+              {editingSimulation.client_name && ` - ${editingSimulation.client_name}`}
+            </p>
+          </div>
+        )}
         {preSelectedClient && (
           <div className="mt-3 p-3 bg-blue-50 border-l-4 border-blue-400 rounded-lg">
             <p className="text-sm text-blue-700">
@@ -191,7 +280,7 @@ const SimulationForm = ({ onTokenExpired, preSelectedClient, onClientUsed }) => 
             </select>
           </div>
 
-          {/* Sliders */}
+          {/* Tous les sliders... (code existant) */}
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
             <div className="flex items-center space-x-3 mb-6">
               <div className="flex items-center justify-center w-6 h-6 bg-green-100 rounded-lg">
@@ -281,6 +370,26 @@ const SimulationForm = ({ onTokenExpired, preSelectedClient, onClientUsed }) => 
                 </div>
               </div>
 
+              {/* Taux d'assurance */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  Taux d'assurance : <span className="text-green-600">{simulation.taux_assurance}%</span>
+                </label>
+                <input
+                  type="range"
+                  min="0.1"
+                  max="1"
+                  step="0.05"
+                  value={simulation.taux_assurance}
+                  onChange={(e) => handleSliderChange('taux_assurance', e.target.value)}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-orange"
+                />
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>0.1%</span>
+                  <span>1%</span>
+                </div>
+              </div>
+
               {/* Apport */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-3">
@@ -318,6 +427,26 @@ const SimulationForm = ({ onTokenExpired, preSelectedClient, onClientUsed }) => 
                 <div className="flex justify-between text-xs text-gray-500 mt-1">
                   <span>2%</span>
                   <span>10%</span>
+                </div>
+              </div>
+
+              {/* Frais d'agence */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  Frais d'agence : <span className="text-green-600">{simulation.frais_agence_pct}%</span>
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="8"
+                  step="0.5"
+                  value={simulation.frais_agence_pct}
+                  onChange={(e) => handleSliderChange('frais_agence_pct', e.target.value)}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-pink"
+                />
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>0%</span>
+                  <span>8%</span>
                 </div>
               </div>
             </div>
@@ -378,11 +507,11 @@ const SimulationForm = ({ onTokenExpired, preSelectedClient, onClientUsed }) => 
                 </div>
               </div>
 
-              {/* Bouton de sauvegarde */}
+              {/* Bouton de sauvegarde modifié */}
               <button
-                onClick={saveSimulation}
+                onClick={editingSimulation ? updateSimulation : saveSimulation}
                 disabled={saving || !selectedClient}
-                className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                className="w-full flex justify-center items-center py-3 px-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-lg hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
               >
                 {saving ? (
                   <>
@@ -390,15 +519,25 @@ const SimulationForm = ({ onTokenExpired, preSelectedClient, onClientUsed }) => 
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Sauvegarde...
+                    {editingSimulation ? 'Mise à jour...' : 'Sauvegarde...'}
                   </>
                 ) : (
                   <>
                     <Save className="w-4 h-4 mr-2" />
-                    ENREGISTRER LA SIMULATION
+                    {editingSimulation ? 'METTRE À JOUR LA SIMULATION' : 'ENREGISTRER LA SIMULATION'}
                   </>
                 )}
               </button>
+
+              {/* Bouton d'annulation en mode édition */}
+              {editingSimulation && (
+                <button
+                  onClick={() => setEditingSimulation(null)}
+                  className="w-full flex justify-center items-center py-2 px-4 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200 mt-2"
+                >
+                  Annuler la modification
+                </button>
+              )}
             </div>
           )}
 
@@ -411,8 +550,8 @@ const SimulationForm = ({ onTokenExpired, preSelectedClient, onClientUsed }) => 
           )}
 
           {success && (
-            <div className="bg-green-50 border-l-4 border-green-400 p-4 rounded-lg flex items-start space-x-2">
-              <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+            <div className="bg-green-50 border-l-4 border-green-400 p-4 rounded-lg flex items-center space-x-2">
+              <CheckCircle className="w-4 h-4 text-green-600" />
               <p className="text-sm text-green-700">{success}</p>
             </div>
           )}

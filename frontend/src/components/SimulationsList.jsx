@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { History, Calendar, Euro, User, Eye, X } from 'lucide-react';
+import { History, Calendar, Euro, User, Eye, X, Edit } from 'lucide-react';
 import { authService } from '../services/authService';
 
-const SimulationsList = ({ onTokenExpired }) => {
+const SimulationsList = ({ onTokenExpired, onEditSimulation }) => {
   const [simulations, setSimulations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -55,6 +55,12 @@ const SimulationsList = ({ onTokenExpired }) => {
     }
   };
 
+  const handleEditSimulation = (simulation) => {
+    if (onEditSimulation) {
+      onEditSimulation(simulation);
+    }
+  };
+  
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
@@ -165,13 +171,22 @@ const SimulationsList = ({ onTokenExpired }) => {
 
                   {/* Actions */}
                   <div className="flex-shrink-0 ml-4">
-                    <button 
-                      onClick={() => handleViewDetails(simulation)}
-                      className="flex items-center space-x-1 px-3 py-2 text-xs font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors"
-                    >
-                      <Eye className="w-3 h-3" />
-                      <span>Détails</span>
-                    </button>
+                    <div className="flex space-x-2">
+                      <button 
+                        onClick={() => handleViewDetails(simulation)}
+                        className="flex items-center space-x-1 px-3 py-2 text-xs font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors"
+                      >
+                        <Eye className="w-3 h-3" />
+                        <span>Détails</span>
+                      </button>
+                      <button 
+                        onClick={() => handleEditSimulation(simulation)}
+                        className="flex items-center space-x-1 px-3 py-2 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                      >
+                        <Edit className="w-3 h-3" />
+                        <span>Modifier</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -208,8 +223,20 @@ const SimulationsList = ({ onTokenExpired }) => {
                   <h4 className="font-semibold text-gray-900">Paramètres du prêt</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Montant emprunté:</span>
-                      <span className="font-semibold">{formatCurrency(selectedSimulation.amount)}</span>
+                      <span className="text-gray-600">Prix du bien:</span>
+                      <span className="font-semibold">{formatCurrency(selectedSimulation.prix_bien || selectedSimulation.amount)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Apport personnel:</span>
+                      <span className="font-semibold">{formatCurrency(selectedSimulation.apport || 0)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Travaux:</span>
+                      <span className="font-semibold">{formatCurrency(selectedSimulation.travaux || 0)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Montant financé:</span>
+                      <span className="font-semibold text-green-600">{formatCurrency(selectedSimulation.montant_finance || selectedSimulation.amount)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Durée:</span>
@@ -219,20 +246,57 @@ const SimulationsList = ({ onTokenExpired }) => {
                       <span className="text-gray-600">Taux d'intérêt:</span>
                       <span className="font-semibold">{selectedSimulation.interest_rate}%</span>
                     </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Taux d'assurance:</span>
+                      <span className="font-semibold">{selectedSimulation.taux_assurance || 0}%</span>
+                    </div>
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  <h4 className="font-semibold text-gray-900">Résultats</h4>
+                  <h4 className="font-semibold text-gray-900">Résultats financiers</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Mensualité:</span>
                       <span className="font-semibold text-green-600">{formatCurrency(selectedSimulation.monthly_payment)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Créée le:</span>
-                      <span className="font-semibold">{formatDate(selectedSimulation.created_at)}</span>
+                      <span className="text-gray-600">Salaire minimum requis:</span>
+                      <span className="font-semibold">{formatCurrency(selectedSimulation.salaire_minimum || 0)}</span>
                     </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Intérêts totaux:</span>
+                      <span className="font-semibold text-orange-600">{formatCurrency(selectedSimulation.interets_totaux || 0)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Assurance totale:</span>
+                      <span className="font-semibold">{formatCurrency(selectedSimulation.assurance_totale || 0)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-gray-900">Frais annexes</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Frais de notaire:</span>
+                      <span className="font-semibold">{formatCurrency(selectedSimulation.frais_notaire || 0)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Frais d'agence:</span>
+                      <span className="font-semibold">{formatCurrency(selectedSimulation.frais_agence || 0)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Garantie bancaire:</span>
+                      <span className="font-semibold">{formatCurrency(selectedSimulation.garantie_bancaire || 0)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-gray-200">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Créée le:</span>
+                    <span className="font-semibold">{formatDate(selectedSimulation.created_at)}</span>
                   </div>
                 </div>
               </div>
