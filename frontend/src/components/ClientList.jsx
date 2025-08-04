@@ -150,79 +150,73 @@ const ClientsList = ({ token, refreshTrigger, onTokenExpired, onSelectClient }) 
               key={client.id}
               className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:border-blue-300 hover:shadow-md transition-all duration-200"
             >
-              {/* Layout mobile : tout en colonne */}
-              <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+              {/* Layout adapté pour éviter les chevauchements */}
+              <div className="flex flex-col space-y-3 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
                 
-                {/* Ligne 1 : Avatar + Nom (mobile) */}
-                <div className="flex items-center space-x-3">
-                  {/* Avatar */}
-                  <div className="flex-shrink-0">
-                    <div className="w-8 sm:w-10 h-8 sm:h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
-                      <span className="text-xs sm:text-sm font-semibold text-white">
-                        {client.name.charAt(0).toUpperCase()}
-                      </span>
+                {/* Section gauche : Avatar + Infos client */}
+                <div className="flex-1 min-w-0">
+                  {/* Ligne 1 : Avatar + Nom + Email */}
+                  <div className="flex items-start space-x-3 mb-2">
+                    <div className="flex-shrink-0">
+                      <div className="w-8 sm:w-10 h-8 sm:h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
+                        <span className="text-xs sm:text-sm font-semibold text-white">
+                          {client.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-semibold text-gray-900 truncate mb-1">
+                        {client.name}
+                      </h4>
+                      {/* Email aligné sous le nom */}
+                      <div className="flex items-center space-x-1 text-xs text-gray-500">
+                        <Mail className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">{client.email}</span>
+                      </div>
                     </div>
                   </div>
-                  
-                  {/* Nom */}
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-semibold text-gray-900 truncate">
-                      {client.name}
-                    </h4>
-                  </div>
-                </div>
 
-                {/* Ligne 2 : Email (mobile) */}
-                <div className="flex items-center space-x-1 text-xs text-gray-500 sm:hidden">
-                  <Mail className="w-3 h-3 flex-shrink-0" />
-                  <span className="truncate">{client.email}</span>
-                </div>
-
-                {/* Ligne 3 : Téléphone (mobile, si existe) */}
-                {client.phone && (
-                  <div className="flex items-center space-x-1 text-xs text-gray-500 sm:hidden">
-                    <Phone className="w-3 h-3 flex-shrink-0" />
-                    <span>{client.phone}</span>
-                  </div>
-                )}
-
-                {/* Version desktop : Email + Téléphone inline */}
-                <div className="hidden sm:flex sm:flex-1 sm:min-w-0 sm:ml-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-1 sm:space-y-0">
-                    <div className="flex items-center space-x-1 text-xs text-gray-500">
-                      <Mail className="w-3 h-3 flex-shrink-0" />
-                      <span className="truncate">{client.email}</span>
-                    </div>
-                    {client.phone && (
+                  {/* Ligne 2 : Téléphone avec marge gauche pour aligner avec l'email */}
+                  {client.phone && (
+                    <div className="ml-[51px]">
                       <div className="flex items-center space-x-1 text-xs text-gray-500">
                         <Phone className="w-3 h-3 flex-shrink-0" />
                         <span>{client.phone}</span>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
 
-                {/* Ligne 4 : Actions (mobile : pleine largeur, desktop : aligné à droite) */}
-                <div className="flex items-center space-x-2 sm:flex-shrink-0">
-                  <button 
-                    onClick={() => handleSimulateClick(client)}
-                    className="flex-1 sm:flex-none flex items-center justify-center space-x-1 px-3 py-2 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
-                  >
-                    <Calculator className="w-3 h-3" />
-                    <span>Simuler</span>
-                  </button>
-                  
-                  <button
-                    onClick={() => handleDeleteClient(client)}
-                    className="flex-1 sm:flex-none flex items-center justify-center space-x-1 px-3 py-2 text-xs font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                    <span>Supprimer</span>
-                  </button>
+                {/* Section droite : Actions (séparée sur mobile, alignée à droite sur desktop) */}
+                <div className="border-t border-gray-100 pt-3 lg:border-t-0 lg:pt-0 lg:flex-shrink-0 lg:ml-4">
+                  <div className="flex items-center space-x-2">
+                    <button 
+                      onClick={() => handleSimulateClick(client)}
+                      className="flex-1 lg:flex-none flex items-center justify-center space-x-1 px-3 py-2 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors min-w-[80px]"
+                    >
+                      <Calculator className="w-3 h-3" />
+                      <span>Simuler</span>
+                    </button>
+                    
+                    <button
+                      onClick={() => handleDeleteClient(client)}
+                      className="flex-1 lg:flex-none flex items-center justify-center space-x-1 px-3 py-2 text-xs font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors min-w-[80px]"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      <span>Supprimer</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Affichage du message de succès */}
+      {success && (
+        <div className="bg-green-50 border-l-4 border-green-400 p-4 rounded-lg mt-4">
+          <p className="text-sm text-green-700">{success}</p>
         </div>
       )}
 
@@ -265,57 +259,6 @@ const ClientsList = ({ token, refreshTrigger, onTokenExpired, onSelectClient }) 
                   onClick={confirmDeleteClient}
                   disabled={deleting}
                   className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
-                >
-                  {deleting ? 'Suppression...' : 'Supprimer'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de confirmation de suppression - Mobile responsive */}
-      {showDeleteModal && clientToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl max-w-sm sm:max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-4 sm:p-6">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="flex items-center justify-center w-10 sm:w-12 h-10 sm:h-12 bg-red-100 rounded-full">
-                  <Trash2 className="w-5 sm:w-6 h-5 sm:h-6 text-red-600" />
-                </div>
-                <div>
-                  <h3 className="text-base sm:text-lg font-semibold text-gray-900">Supprimer la simulation</h3>
-                  <p className="text-xs sm:text-sm text-gray-600">Cette action est irréversible</p>
-                </div>
-              </div>
-              
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 mb-4">
-                <p className="text-xs sm:text-sm text-red-800">
-                  <strong>Simulation #{clientToDelete.id}</strong>
-                </p>
-                <p className="text-xs sm:text-sm text-red-700">
-                  Client : {clientToDelete.client_name}
-                </p>
-                <p className="text-xs sm:text-sm text-red-700">
-                  Mensualité : {clientToDelete.monthly_payment}
-                </p>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
-                <button
-                  onClick={() => {
-                    setShowDeleteModal(false);
-                    setClientToDelete(null);
-                  }}
-                  disabled={deleting}
-                  className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
-                >
-                  Annuler
-                </button>
-                <button
-                  onClick={confirmDeleteClient}
-                  disabled={deleting}
-                  className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors text-sm"
                 >
                   {deleting ? 'Suppression...' : 'Supprimer'}
                 </button>

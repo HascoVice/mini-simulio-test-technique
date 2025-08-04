@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const SliderInput = ({ 
   label, 
@@ -14,19 +14,46 @@ const SliderInput = ({
   minLabel = '',
   maxLabel = ''
 }) => {
+  // État local pour la valeur de l'input (permet la saisie libre)
+  const [inputValue, setInputValue] = useState(value.toString());
+
+  // Mise à jour de l'état local quand la prop value change (depuis le slider)
+  React.useEffect(() => {
+    setInputValue(value.toString());
+  }, [value]);
+
   const handleInputChange = (e) => {
-    let newValue = parseFloat(e.target.value) || 0;
+    // Permettre la saisie libre (même au-delà des limites temporairement)
+    setInputValue(e.target.value);
+  };
+
+  const handleInputBlur = () => {
+    // Validation et correction seulement à la fin de la saisie (onBlur)
+    let newValue = parseFloat(inputValue) || 0;
     
-    // Validation des limites
+    // Appliquer les limites
     if (newValue < min) newValue = min;
     if (newValue > max) newValue = max;
     
+    // Arrondir selon le step
+    newValue = Math.round(newValue / step) * step;
+    
+    // Mettre à jour la valeur réelle
     onChange(newValue);
+    setInputValue(newValue.toString());
+  };
+
+  const handleKeyPress = (e) => {
+    // Valider directement si on appuie sur Entrée
+    if (e.key === 'Enter') {
+      handleInputBlur();
+    }
   };
 
   const handleSliderChange = (e) => {
     const newValue = parseFloat(e.target.value);
     onChange(newValue);
+    setInputValue(newValue.toString());
   };
 
   const displayValue = formatValue ? formatValue(value) : value;
@@ -49,25 +76,24 @@ const SliderInput = ({
         className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer ${sliderClass} mb-5`}
       />
       
-      {/* Input numérique */}
+      {/* Input numérique - LIBRE */}
       <div className="flex items-center space-x-2 mb-2">
         <input
-          type="number"
-          min={min}
-          max={max}
-          step={step}
-          value={value}
+          type="text"
+          value={inputValue}
           onChange={handleInputChange}
-          onBlur={handleInputChange}
-          className={`${inputWidth} px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 ${focusRingColor}`}
+          onBlur={handleInputBlur}
+          onKeyPress={handleKeyPress}
+          placeholder={`${min} - ${max}`}
+          className={`${inputWidth} px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
         />
         <span className="text-xs text-gray-500 font-medium">{unit}</span>
       </div>
       
       {/* Limites discrètes sous l'input */}
-      <div className="flex justify-between text-xs text-gray-500">
-        <span>{minLabel || `${min.toLocaleString()}${unit}`}</span>
-        <span>{maxLabel || `${max.toLocaleString()}${unit}`}</span>
+      <div className="flex justify-between text-xs text-gray-400 font-medium">
+        <span>{minLabel || `${min}${unit}`}</span>
+        <span>{maxLabel || `${max}${unit}`}</span>
       </div>
     </div>
   );

@@ -23,11 +23,23 @@ function App() {
     return urlParams.get(param);
   };
 
-  // Fonction pour mettre à jour l'URL avec les query parameters
+  // Fonction pour lire la route depuis l'URL
+  const getRouteFromPath = () => {
+    const path = window.location.pathname;
+    if (path === '/clients') return 'clients';
+    if (path === '/simulation') return 'simulation';
+    if (path === '/history') return 'history';
+    return 'clients'; // défaut
+  };
+
+  // Fonction pour mettre à jour l'URL avec de vraies routes
   const updateURL = (tab) => {
-    const url = new URL(window.location);
-    url.searchParams.set('tab', tab);
-    window.history.pushState({}, '', url);
+    const routes = {
+      'clients': '/clients',
+      'simulation': '/simulation', 
+      'history': '/history'
+    };
+    window.history.pushState({}, '', routes[tab] || '/clients');
   };
 
   // Fonction pour changer d'onglet
@@ -43,11 +55,11 @@ function App() {
       setIsAuthenticated(true);
       
       // Lire l'onglet depuis l'URL ou utiliser 'clients' par défaut
-      const tabFromURL = getQueryParam('tab');
-      if (tabFromURL && ['simulation', 'clients', 'history'].includes(tabFromURL)) {
-        setActiveTab(tabFromURL);
-      } else {
-        // Si pas d'onglet dans l'URL, mettre à jour l'URL avec 'clients'
+      const tabFromURL = getRouteFromPath();
+      setActiveTab(tabFromURL);
+      
+      // Si on est sur la racine, rediriger vers /clients
+      if (window.location.pathname === '/') {
         updateURL('clients');
       }
     }
@@ -56,12 +68,8 @@ function App() {
   // Écouter les changements d'URL (bouton retour du navigateur)
   useEffect(() => {
     const handlePopState = () => {
-      const tabFromURL = getQueryParam('tab');
-      if (tabFromURL && ['simulation', 'clients', 'history'].includes(tabFromURL)) {
-        setActiveTab(tabFromURL);
-      } else {
-        setActiveTab('clients');
-      }
+      const tabFromURL = getRouteFromPath();
+      setActiveTab(tabFromURL);
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -82,8 +90,8 @@ function App() {
     setToken(null);
     setIsAuthenticated(false);
     setError('');
-    // Nettoyer l'URL
-    window.history.pushState({}, '', window.location.pathname);
+    // Rediriger vers la racine
+    window.history.pushState({}, '', '/');
   };
 
   const handleTokenExpired = () => {

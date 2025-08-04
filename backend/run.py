@@ -11,9 +11,9 @@ app.config["JWT_SECRET_KEY"] = "votre_cle_secrete"
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 jwt = JWTManager(app)
 
-# Configuration CORS plus permissive pour les méthodes DELETE
+# Configuration CORS avec localhost ET 127.0.0.1
 CORS(app, 
-     origins=["http://localhost:5173"],
+     origins=["http://localhost:5173", "http://127.0.0.1:5173"],
      methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
      allow_headers=["Content-Type", "Authorization"])
 

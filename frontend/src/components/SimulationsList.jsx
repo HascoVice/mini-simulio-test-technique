@@ -201,14 +201,14 @@ const SimulationsList = ({ onTokenExpired, onEditSimulation }) => {
                         <Euro className="w-3 h-3 text-green-600 flex-shrink-0" />
                         <span className="text-gray-600">Mensualité:</span>
                         <span className="font-semibold text-green-600">
-                          {formatCurrency(simulation.monthly_payment)}
+                          {formatCurrency(Math.max(0, simulation.monthly_payment))}
                         </span>
                       </div>
                       
                       <div className="flex items-center space-x-2">
                         <span className="text-gray-600">Montant:</span>
                         <span className="font-semibold">
-                          {formatCurrency(simulation.amount)}
+                          {formatCurrency(Math.max(0, simulation.amount))}
                         </span>
                       </div>
                       
@@ -299,7 +299,7 @@ const SimulationsList = ({ onTokenExpired, onEditSimulation }) => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Montant financé:</span>
-                      <span className="font-semibold text-green-600">{formatCurrency(selectedSimulation.montant_finance || selectedSimulation.amount)}</span>
+                      <span className="font-semibold text-green-600">{formatCurrency(Math.max(0, selectedSimulation.montant_finance || selectedSimulation.amount))}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Durée:</span>
@@ -321,19 +321,19 @@ const SimulationsList = ({ onTokenExpired, onEditSimulation }) => {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Mensualité:</span>
-                      <span className="font-semibold text-green-600">{formatCurrency(selectedSimulation.monthly_payment)}</span>
+                      <span className="font-semibold text-green-600">{formatCurrency(Math.max(0, selectedSimulation.monthly_payment))}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Salaire minimum requis:</span>
-                      <span className="font-semibold">{formatCurrency(selectedSimulation.salaire_minimum || 0)}</span>
+                      <span className="font-semibold">{formatCurrency(Math.max(0, selectedSimulation.salaire_minimum || 0))}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Intérêts totaux:</span>
-                      <span className="font-semibold text-orange-600">{formatCurrency(selectedSimulation.interets_totaux || 0)}</span>
+                      <span className="font-semibold text-orange-600">{formatCurrency(Math.max(0, selectedSimulation.interets_totaux || 0))}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Assurance totale:</span>
-                      <span className="font-semibold">{formatCurrency(selectedSimulation.assurance_totale || 0)}</span>
+                      <span className="font-semibold">{formatCurrency(Math.max(0, selectedSimulation.assurance_totale || 0))}</span>
                     </div>
                   </div>
                 </div>
@@ -358,7 +358,7 @@ const SimulationsList = ({ onTokenExpired, onEditSimulation }) => {
 
                 <div className="pt-3 border-t border-gray-200">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Créée le:</span>
+                    <span className="text-gray-600">Créé le:</span>
                     <span className="font-semibold">{formatDate(selectedSimulation.created_at)}</span>
                   </div>
                 </div>
