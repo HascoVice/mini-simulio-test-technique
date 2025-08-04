@@ -79,7 +79,7 @@ const SimulationForm = ({ onTokenExpired, preSelectedClient, onClientUsed, editi
 
   const fetchClients = async () => {
     try {
-      const response = await authService.apiCall('http://localhost:5000/api/clients/');
+      const response = await authService.apiCall('http://localhost:9654/api/clients/');
       if (response.ok) {
         const data = await response.json();
         setClients(data);
@@ -98,7 +98,7 @@ const SimulationForm = ({ onTokenExpired, preSelectedClient, onClientUsed, editi
     setError('');
     
     try {
-      const response = await authService.apiCall('http://localhost:5000/api/simulations/calculate-simple', {
+      const response = await authService.apiCall('http://localhost:9654/api/simulations/calculate-simple', {
         method: 'POST',
         body: JSON.stringify({
           ...simulation,
@@ -143,7 +143,7 @@ const SimulationForm = ({ onTokenExpired, preSelectedClient, onClientUsed, editi
     setSuccess('');
 
     try {
-      const response = await authService.apiCall('http://localhost:5000/api/simulations/save', {
+      const response = await authService.apiCall('http://localhost:9654/api/simulations/save', {
         method: 'POST',
         body: JSON.stringify({
           client_id: parseInt(selectedClient),
@@ -184,7 +184,7 @@ const SimulationForm = ({ onTokenExpired, preSelectedClient, onClientUsed, editi
 
     try {
       console.log('Mise à jour simulation:', editingSimulation.id);
-      const response = await authService.apiCall(`http://localhost:5000/api/simulations/${editingSimulation.id}`, {
+      const response = await authService.apiCall(`http://localhost:9654/api/simulations/${editingSimulation.id}`, {
         method: 'PUT',
         body: JSON.stringify({
           client_id: parseInt(selectedClient),

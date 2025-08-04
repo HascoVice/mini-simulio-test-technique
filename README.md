@@ -27,7 +27,7 @@
 
 ### Accès à l'application
 - **Frontend** : http://localhost:5173
-- **Backend API** : http://localhost:5000
+- **Backend API** : http://localhost:9654
 - **Adminer** (base de données) : http://localhost:8080
 
 ### Comptes de test

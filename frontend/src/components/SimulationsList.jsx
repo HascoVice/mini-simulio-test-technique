@@ -15,7 +15,7 @@ const SimulationsList = ({ onTokenExpired, onEditSimulation }) => {
 
   const fetchSimulations = async () => {
     try {
-      const response = await authService.apiCall('http://localhost:5000/api/simulations/user');
+      const response = await authService.apiCall('http://localhost:9654/api/simulations/user');
       
       if (response.ok) {
         const data = await response.json();
@@ -41,7 +41,7 @@ const SimulationsList = ({ onTokenExpired, onEditSimulation }) => {
 
   const handleViewDetails = async (simulation) => {
     try {
-      const response = await authService.apiCall(`http://localhost:5000/api/simulations/${simulation.id}`);
+      const response = await authService.apiCall(`http://localhost:9654/api/simulations/${simulation.id}`);
       
       if (response.ok) {
         const detailedSimulation = await response.json();
@@ -75,7 +75,7 @@ const SimulationsList = ({ onTokenExpired, onEditSimulation }) => {
 
     setDeleting(true);
     try {
-      const response = await authService.apiCall(`http://localhost:5000/api/simulations/${simulationToDelete.id}`, {
+      const response = await authService.apiCall(`http://localhost:9654/api/simulations/${simulationToDelete.id}`, {
         method: 'DELETE'
       });
 

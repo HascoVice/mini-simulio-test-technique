@@ -26,7 +26,7 @@ const ClientForm = ({ token, onClientCreated, onTokenExpired }) => {
     setSuccess('');
 
     try {
-      const response = await authService.apiCall('http://localhost:5000/api/clients/', {
+      const response = await authService.apiCall('http://localhost:9654/api/clients/', {
         method: 'POST',
         body: JSON.stringify(formData),
       });

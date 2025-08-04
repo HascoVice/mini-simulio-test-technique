@@ -13,7 +13,7 @@ const ClientsList = ({ token, refreshTrigger, onTokenExpired, onSelectClient }) 
 
   const fetchClients = async () => {
     try {
-      const response = await authService.apiCall('http://localhost:5000/api/clients/');
+      const response = await authService.apiCall('http://localhost:9654/api/clients/');
 
       if (response.ok) {
         const data = await response.json();
@@ -53,7 +53,7 @@ const ClientsList = ({ token, refreshTrigger, onTokenExpired, onSelectClient }) 
 
     setDeleting(true);
     try {
-      const response = await authService.apiCall(`http://localhost:5000/api/clients/${clientToDelete.id}`, {
+      const response = await authService.apiCall(`http://localhost:9654/api/clients/${clientToDelete.id}`, {
         method: 'DELETE'
       });
 
