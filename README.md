@@ -8,16 +8,22 @@
 ### Étapes d'installation
 
 1. **Cloner le projet**
+   ```bash
    git clone git@github.com:HascoVice/mini-simulio-test-technique.git
    cd mini-simulio-test-technique
+   ```
 
 2. **Installer les dépendances frontend**
+   ```bash
    cd frontend
    npm install
    cd ..
+   ```
 
 3. **Lancer l'application avec Docker**
+   ```bash
    docker-compose up -d --build
+   ```
 
 ### Accès à l'application
 - **Frontend** : http://localhost:5173
