@@ -9,7 +9,7 @@
 
 1. **Cloner le projet**
    ```bash
-   git clone git@github.com:HascoVice/mini-simulio-test-technique.git
+   git clone https://github.com/HascoVice/mini-simulio-test-technique.git
    cd mini-simulio-test-technique
    ```
 
